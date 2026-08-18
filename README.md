@@ -60,13 +60,30 @@ ready yet when the Pi boots).
 OS, and it would not restart the script if it crashed.)
 
 ## Display
-Line 1 : UNIX timestamp (e.g. UNIX:1,747,123,456)
-Line 2 : Dublin local time with its current offset (e.g. 15h 22m 07s IST)
+The panel is 20x4. Row 3 is blank and written once at startup; rows 1, 2 and 4
+are driven from the loop.
 
-The second line is rendered in the Europe/Dublin timezone explicitly, not in
-whatever timezone the Pi happens to be set to, so it stays correct after a
-re-image. The suffix follows Irish daylight saving on its own: IST in summer,
-GMT in winter.
+Row 1 : which zone is being shown, alternating every 15 seconds between
+        "Irish Local Time" and "Hungarian Local Time"
+Row 2 : the time in that zone, 12-hour with AM/PM (e.g. 04:45:00 PM)
+Row 3 : blank, to separate the clock from the timestamp
+Row 4 : UNIX timestamp (e.g. 1,787,067,900)
+
+The UNIX timestamp is the same number in both zones, so row 4 does not change
+when the display swaps; only rows 1 and 2 do.
+
+The swap is driven by dividing epoch seconds, not by counting iterations, so it
+always lands on :00, :15, :30 and :45 rather than drifting from whenever the
+script happened to start. Row 1 is only redrawn on a swap.
+
+Each zone is rendered from its own ZoneInfo entry rather than the system
+timezone, so both are correct wherever the Pi is set up, and summer time is
+applied independently for each country. Budapest runs one hour ahead of Dublin
+all year (CET/CEST against GMT/IST).
+
+Note that this is a character LCD: each cell is a fixed 5x8 dot matrix, so
+there is no font size to adjust. Layout is the only lever, which is why the
+label sits on its own row rather than inline with the time.
 
 ## Troubleshooting
 
