@@ -1,6 +1,10 @@
 # Raspberry Pi UNIX Clock
 
-A minimal UNIX timestamp clock displayed on a 20x4 LCD screen, running on a Raspberry Pi 3.
+A clock for a 20x4 character LCD, running on a Raspberry Pi 3. It alternates
+every 15 seconds between Irish and Hungarian local time, with the UNIX
+timestamp underneath.
+
+![The clock running, showing Irish local time and the UNIX timestamp](docs/clock.jpg)
 
 ## Hardware Required
 - Raspberry Pi 3
