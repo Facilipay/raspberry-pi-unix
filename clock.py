@@ -55,13 +55,7 @@ time.sleep(0.1)
 lcd.write(no_block_cursor)
 time.sleep(0.1)
 
-# Row 3 is always blank, so write it once instead of re-sending it every
-# second. If the backpack is power-cycled the script exits on the next write
-# and systemd restarts it, which runs this setup again.
-lcd.write(row3)
-lcd.write((" " * LCD_COLS).encode())
-
-shown_label = None
+shown_phase = None
 
 try:
     while True:
@@ -70,18 +64,24 @@ try:
 
         # Dividing epoch seconds picks the zone, so the swap lands on :00, :15,
         # :30 and :45 rather than drifting from whenever the script started.
-        label, zone = ZONES[epoch // TOGGLE_SECONDS % len(ZONES)]
+        phase = epoch // TOGGLE_SECONDS
+        label, zone = ZONES[phase % len(ZONES)]
         now = now_utc.astimezone(zone)
 
         # Derive AM/PM directly rather than with %p, which renders empty under
         # some locales and would silently drop the meridiem from the panel.
         meridiem = "AM" if now.hour < 12 else "PM"
 
-        # The label only changes on a swap; no need to redraw it every second.
-        if label != shown_label:
+        # Rows 1 and 3 do not change second to second, but redraw them on every
+        # swap rather than once at startup. A dropped write or a glitched row
+        # then repairs itself within TOGGLE_SECONDS instead of sitting there
+        # until the process happens to restart.
+        if phase != shown_phase:
             lcd.write(row1)
             lcd.write(fit(label).encode())
-            shown_label = label
+            lcd.write(row3)
+            lcd.write((" " * LCD_COLS).encode())
+            shown_phase = phase
 
         lcd.write(row2)
         lcd.write(fit(f"{now.strftime('%I:%M:%S')} {meridiem}").encode())
