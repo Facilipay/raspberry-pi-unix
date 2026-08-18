@@ -21,8 +21,8 @@ def find_lcd_port():
     return '/dev/ttyACM0'
 
 
-def fit(text, align):
-    """Pad to the panel width, and never overflow onto the next line."""
+def fit(text, align=str.center):
+    """Pad to the panel width, and never overflow onto the next row."""
     return align(text, LCD_COLS)[:LCD_COLS]
 
 
@@ -33,8 +33,12 @@ clear           = bytearray([0xFE, 0x58])
 no_scroll       = bytearray([0xFE, 0x52])
 no_cursor       = bytearray([0xFE, 0x4B])
 no_block_cursor = bytearray([0xFE, 0x54])
-line1           = bytearray([0xFE, 0x47, 0x01, 0x01])
-line2           = bytearray([0xFE, 0x47, 0x01, 0x02])
+
+# 0xFE 0x47 col row — the panel is 20x4, so rows run 1..4.
+row1 = bytearray([0xFE, 0x47, 0x01, 0x01])
+row2 = bytearray([0xFE, 0x47, 0x01, 0x02])
+row3 = bytearray([0xFE, 0x47, 0x01, 0x03])
+row4 = bytearray([0xFE, 0x47, 0x01, 0x04])
 
 lcd.write(clear)
 time.sleep(0.5)
@@ -45,6 +49,14 @@ time.sleep(0.1)
 lcd.write(no_block_cursor)
 time.sleep(0.1)
 
+# Rows 1 and 3 never change, so write them once instead of re-sending 40 bytes
+# every second. If the backpack is power-cycled the script exits and systemd
+# restarts it, which runs this setup again.
+lcd.write(row1)
+lcd.write(fit("Irish Local Time").encode())
+lcd.write(row3)
+lcd.write((" " * LCD_COLS).encode())
+
 try:
     while True:
         now = datetime.now(DUBLIN)
@@ -53,12 +65,12 @@ try:
         # some locales and would silently drop the meridiem from the panel.
         meridiem = "AM" if now.hour < 12 else "PM"
 
-        time_line = fit(f"Irish {now.strftime('%I:%M:%S')} {meridiem}", str.center)
-        unix_line = fit(f"UNIX:{int(now.timestamp()):,}", str.center)
+        time_line = fit(f"{now.strftime('%I:%M:%S')} {meridiem}")
+        unix_line = fit(f"{int(now.timestamp()):,}")
 
-        lcd.write(line1)
+        lcd.write(row2)
         lcd.write(time_line.encode())
-        lcd.write(line2)
+        lcd.write(row4)
         lcd.write(unix_line.encode())
 
         # sleep to the next second boundary so the display never skips a second

@@ -60,17 +60,22 @@ ready yet when the Pi boots).
 OS, and it would not restart the script if it crashed.)
 
 ## Display
-Line 1 : Irish local time in 12-hour format (e.g. Irish 04:27:39 PM)
-Line 2 : UNIX timestamp (e.g. UNIX:1,787,066,859)
+The panel is 20x4. Rows 1 and 3 are static and written once at startup; rows 2
+and 4 are refreshed every second.
+
+Row 1 : Irish Local Time
+Row 2 : the time, 12-hour with AM/PM (e.g. 04:34:33 PM)
+Row 3 : blank, to separate the clock from the timestamp
+Row 4 : UNIX timestamp (e.g. 1,787,067,273)
 
 The time is rendered in the Europe/Dublin timezone explicitly, not in whatever
 timezone the Pi happens to be set to, so it stays correct after a re-image.
 Irish summer time is handled by the timezone database, so the hour is right on
 both sides of the March and October changeovers with no code change.
 
-The IST/GMT suffix is deliberately not shown: "Irish 04:27:39 PM IST" is 21
-characters and the panel is 20 wide, so the explicit "Irish" label takes its
-place.
+Note that this is a character LCD: each cell is a fixed 5x8 dot matrix, so
+there is no font size to adjust. Layout is the only lever, which is why the
+label sits on its own row rather than inline with the time.
 
 ## Troubleshooting
 
