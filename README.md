@@ -61,7 +61,12 @@ OS, and it would not restart the script if it crashed.)
 
 ## Display
 Line 1 : UNIX timestamp (e.g. UNIX:1,747,123,456)
-Line 2 : Current time (e.g. 15h 22m 07s)
+Line 2 : Dublin local time with its current offset (e.g. 15h 22m 07s IST)
+
+The second line is rendered in the Europe/Dublin timezone explicitly, not in
+whatever timezone the Pi happens to be set to, so it stays correct after a
+re-image. The suffix follows Irish daylight saving on its own: IST in summer,
+GMT in winter.
 
 ## Troubleshooting
 

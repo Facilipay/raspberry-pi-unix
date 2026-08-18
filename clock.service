@@ -1,6 +1,10 @@
 [Unit]
 Description=UNIX LCD clock
 After=dev-ttyACM0.device
+# The LCD may be absent or plugged in late. Without this, five quick restarts
+# in 10s trip systemd's default rate limit and the unit stays failed instead of
+# picking the display up when it finally appears.
+StartLimitIntervalSec=0
 
 [Service]
 ExecStart=/usr/bin/python3 /home/pi/clock.py
