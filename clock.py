@@ -49,15 +49,17 @@ try:
     while True:
         now = datetime.now(DUBLIN)
 
-        # %Z renders IST in summer and GMT in winter, so the line always says
-        # which offset Dublin is currently on.
-        unix_line = fit(f"UNIX:{int(now.timestamp()):,}", str.ljust)
-        time_line = fit(now.strftime("%Hh %Mm %Ss %Z"), str.center)
+        # Derive AM/PM directly rather than with %p, which renders empty under
+        # some locales and would silently drop the meridiem from the panel.
+        meridiem = "AM" if now.hour < 12 else "PM"
+
+        time_line = fit(f"Irish {now.strftime('%I:%M:%S')} {meridiem}", str.center)
+        unix_line = fit(f"UNIX:{int(now.timestamp()):,}", str.center)
 
         lcd.write(line1)
-        lcd.write(unix_line.encode())
-        lcd.write(line2)
         lcd.write(time_line.encode())
+        lcd.write(line2)
+        lcd.write(unix_line.encode())
 
         # sleep to the next second boundary so the display never skips a second
         time.sleep(1 - time.time() % 1)

@@ -60,13 +60,17 @@ ready yet when the Pi boots).
 OS, and it would not restart the script if it crashed.)
 
 ## Display
-Line 1 : UNIX timestamp (e.g. UNIX:1,747,123,456)
-Line 2 : Dublin local time with its current offset (e.g. 15h 22m 07s IST)
+Line 1 : Irish local time in 12-hour format (e.g. Irish 04:27:39 PM)
+Line 2 : UNIX timestamp (e.g. UNIX:1,787,066,859)
 
-The second line is rendered in the Europe/Dublin timezone explicitly, not in
-whatever timezone the Pi happens to be set to, so it stays correct after a
-re-image. The suffix follows Irish daylight saving on its own: IST in summer,
-GMT in winter.
+The time is rendered in the Europe/Dublin timezone explicitly, not in whatever
+timezone the Pi happens to be set to, so it stays correct after a re-image.
+Irish summer time is handled by the timezone database, so the hour is right on
+both sides of the March and October changeovers with no code change.
+
+The IST/GMT suffix is deliberately not shown: "Irish 04:27:39 PM IST" is 21
+characters and the panel is 20 wide, so the explicit "Irish" label takes its
+place.
 
 ## Troubleshooting
 
