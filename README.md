@@ -59,9 +59,13 @@ ready yet when the Pi boots).
 (rc.local is deprecated and no longer runs by default on current Raspberry Pi
 OS, and it would not restart the script if it crashed.)
 
+If you previously followed the old rc.local instructions, remove that line now :
+sudo sed -i '/clock\.py/d' /etc/rc.local
+Leaving it in place risks a second copy of the script starting at boot and
+drawing over the first, which looks like duplicated or garbled rows.
+
 ## Display
-The panel is 20x4. Row 3 is blank and written once at startup; rows 1, 2 and 4
-are driven from the loop.
+The panel is 20x4 and all four rows are driven from the loop.
 
 Row 1 : which zone is being shown, alternating every 15 seconds between
         "Irish Local Time" and "Hungarian Local Time"
@@ -74,7 +78,12 @@ when the display swaps; only rows 1 and 2 do.
 
 The swap is driven by dividing epoch seconds, not by counting iterations, so it
 always lands on :00, :15, :30 and :45 rather than drifting from whenever the
-script happened to start. Row 1 is only redrawn on a swap.
+script happened to start.
+
+Rows 2 and 4 are redrawn every second. Rows 1 and 3 do not change second to
+second, but they are redrawn on every swap rather than once at startup, so a
+dropped write or a glitched row repairs itself within 15 seconds instead of
+sitting there until the process happens to restart.
 
 Each zone is rendered from its own ZoneInfo entry rather than the system
 timezone, so both are correct wherever the Pi is set up, and summer time is
