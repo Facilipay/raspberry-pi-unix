@@ -21,10 +21,14 @@ lsusb
 You should see a device with ID 239a:0001.
 
 ## Step 3 - Install dependencies
-pip3 install pyserial
+sudo apt install python3-serial
 
-## Step 4 - Copy the script
-Copy clock.py to /home/pi/clock.py on the Raspberry Pi.
+(On current Raspberry Pi OS (Bookworm), plain "pip3 install pyserial" is refused
+with an "externally-managed-environment" error — the apt package is the simplest
+way to install it system-wide, which is what the boot service needs.)
+
+## Step 4 - Copy the files
+Copy clock.py and clock.service to /home/pi/ on the Raspberry Pi.
 
 ## Step 5 - Keep the time in sync (NTP)
 The Raspberry Pi 3 has no RTC battery, so it forgets the time when unplugged.
@@ -44,11 +48,16 @@ If it ever boots with no network, the time will be wrong until it gets one; it s
 python3 clock.py
 
 ## Step 7 - Auto-start on boot
-Edit /etc/rc.local :
-sudo nano /etc/rc.local
-Add this line before exit 0 :
-python3 /home/pi/clock.py &
-The script will now launch automatically every time the Raspberry Pi boots.
+Copy the provided systemd service file and enable it :
+sudo cp clock.service /etc/systemd/system/clock.service
+sudo systemctl enable --now clock
+
+The service starts the clock at every boot and restarts it automatically if it
+ever crashes (e.g. the LCD is unplugged and replugged, or the USB port is not
+ready yet when the Pi boots).
+
+(rc.local is deprecated and no longer runs by default on current Raspberry Pi
+OS, and it would not restart the script if it crashed.)
 
 ## Display
 Line 1 : UNIX timestamp (e.g. UNIX:1,747,123,456)
@@ -67,9 +76,9 @@ Line 2 : Current time (e.g. 15h 22m 07s)
 - If it still does not appear, the cable or the backpack is faulty.
 
 ### The LCD lights up but shows nothing (or garbage)
-- Wrong serial port. List the available ports :
+- The script normally finds the LCD by its USB ID (239a:0001) whatever the port
+  name, so a wrong port should not happen. To double check, list the ports :
   ls /dev/ttyACM*
-  If you see /dev/ttyACM1 instead of ttyACM0, edit clock.py and change the port on line 4.
 - Check the baud rate is 9600 (default in clock.py).
 
 ### "Permission denied" on /dev/ttyACM0
@@ -78,7 +87,7 @@ Line 2 : Current time (e.g. 15h 22m 07s)
 
 ### "No module named serial"
 - pyserial is missing. Install it :
-  pip3 install pyserial
+  sudo apt install python3-serial
 
 ### The time is wrong
 - Check the time sync (see Step 5) :
@@ -87,13 +96,16 @@ Line 2 : Current time (e.g. 15h 22m 07s)
 - The Pi 3 has no battery clock, so a wrong time after a power cut is normal until it syncs.
 
 ### The clock does not start automatically on boot
-- Check that /etc/rc.local is executable :
-  sudo chmod +x /etc/rc.local
-- Make sure the line "python3 /home/pi/clock.py &" is placed BEFORE "exit 0".
+- Check the service status and its recent logs :
+  systemctl status clock
+- Make sure it is enabled :
+  sudo systemctl enable clock
 - Confirm the script path is correct :
   ls /home/pi/clock.py
 
 ### Check whether the script is running
-  ps aux | grep clock.py
+  systemctl status clock
 - To stop it :
-  sudo pkill -f clock.py
+  sudo systemctl stop clock
+- To stop it permanently (no restart at boot) :
+  sudo systemctl disable --now clock
